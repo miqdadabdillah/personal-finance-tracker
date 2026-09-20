@@ -25,10 +25,17 @@ const HANDLE_KEY = 'active'
 
 let activeHandle: FileSystemFileHandle | null = null
 let activeFileName: string | null = null
+let pendingHandle: FileSystemFileHandle | null = null
+let pendingFileName: string | null = null
 let writeQueue: Promise<void> = Promise.resolve()
 let onPersistError: ((message: string) => void) | null = null
 
-export type FileStatus = { connected: boolean; name: string | null }
+export type FileStatus = {
+  connected: boolean
+  name: string | null
+  needsPermission: boolean
+  pendingName: string | null
+}
 
 const statusListeners = new Set<(status: FileStatus) => void>()
 
@@ -37,7 +44,12 @@ export function setOnPersistError(handler: ((message: string) => void) | null): 
 }
 
 export function getFileStatus(): FileStatus {
-  return { connected: activeHandle !== null, name: activeFileName }
+  return {
+    connected: activeHandle !== null,
+    name: activeFileName,
+    needsPermission: pendingHandle !== null,
+    pendingName: pendingFileName,
+  }
 }
 
 export function subscribeFileStatus(listener: (status: FileStatus) => void): () => void {
@@ -142,6 +154,8 @@ function enqueueWrite(task: () => Promise<void>): Promise<void> {
 async function connectHandle(handle: FileSystemFileHandle): Promise<void> {
   const granted = await ensurePermission(handle)
   if (!granted) throw new Error('Izin akses file ditolak')
+  pendingHandle = null
+  pendingFileName = null
   activeHandle = handle
   activeFileName = handle.name
   try {
@@ -158,7 +172,7 @@ export async function initActiveFile(): Promise<void> {
   if (!handle) return
   let granted = false
   try {
-    granted = await ensurePermission(handle)
+    granted = (await handle.queryPermission({ mode: 'readwrite' })) === 'granted'
   } catch {
     granted = false
   }
@@ -168,10 +182,28 @@ export async function initActiveFile(): Promise<void> {
     emitStatus()
     return
   }
-  activeHandle = null
-  activeFileName = null
+  // Re-granting permission (e.g. Google Drive files) requires a user gesture,
+  // which is not available during page load. Keep the stored handle as
+  // "pending" so the user can reconnect with one click instead of re-selecting
+  // the file, which keeps the Drive connection alive across reloads.
+  pendingHandle = handle
+  pendingFileName = handle.name
   emitStatus()
-  onPersistError?.('Koneksi ke file lokal terputus. Sambungkan ulang di Pengaturan.')
+}
+
+export async function reconnectActiveFile(): Promise<boolean> {
+  const handle = pendingHandle
+  if (!handle) return true
+  const granted = await ensurePermission(handle)
+  if (!granted) return false
+  await connectHandle(handle)
+  return true
+}
+
+export async function ignorePendingFile(): Promise<void> {
+  pendingHandle = null
+  pendingFileName = null
+  emitStatus()
 }
 
 export async function saveToLocalFile(data: FinanceStore): Promise<string> {
@@ -212,24 +244,45 @@ export async function persistToActiveFile(data: FinanceStore): Promise<boolean> 
   if (!isFileSystemAccessSupported()) return true
   const handle = activeHandle
   if (!handle) return true
-  if (!(await ensurePermission(handle))) {
-    const message = 'Koneksi ke file lokal terputus. Sambungkan ulang di Pengaturan.'
-    await disconnectLocalFile()
-    onPersistError?.(message)
-    return false
+  if ((await handle.queryPermission({ mode: 'readwrite' })) !== 'granted') {
+    // Permission may be revoked (e.g. Google Drive file needs a user gesture).
+    // Try to re-request it under the current user gesture; if that fails, keep
+    // the handle as pending so it can be reconnected with one click instead of
+    // being dropped entirely.
+    try {
+      const granted = await ensurePermission(handle)
+      if (!granted) {
+        markPending(handle)
+        return false
+      }
+    } catch {
+      markPending(handle)
+      return false
+    }
   }
   try {
     await enqueueWrite(() => writeToHandle(handle, data))
     return true
   } catch {
-    const message = 'Gagal menyimpan ke file lokal. Koneksi terputus.'
-    await disconnectLocalFile()
-    onPersistError?.(message)
+    markPending(handle)
     return false
   }
 }
 
+function markPending(handle: FileSystemFileHandle): void {
+  pendingHandle = handle
+  pendingFileName = handle.name
+  activeHandle = null
+  activeFileName = null
+  emitStatus()
+  onPersistError?.(
+    'Koneksi ke file terputus. Klik "Sambungkan kembali" di Pengaturan, atau putuskan koneksi.'
+  )
+}
+
 export async function disconnectLocalFile(): Promise<void> {
+  pendingHandle = null
+  pendingFileName = null
   activeHandle = null
   activeFileName = null
   await clearStoredHandle()

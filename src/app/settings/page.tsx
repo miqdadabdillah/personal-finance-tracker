@@ -8,7 +8,7 @@ import { clearData } from '@/lib/storage'
 import { FinanceStore } from '@/types/finance'
 import { Download, Upload, Trash2, Shield, Database, Sun, Moon, Monitor, Plus, Pencil, Trash, Save, FolderOpen, HardDrive, Unlink } from 'lucide-react'
 import {
-  saveToLocalFile, openLocalFile, disconnectLocalFile,
+  saveToLocalFile, openLocalFile, disconnectLocalFile, reconnectActiveFile, ignorePendingFile,
   isFileSystemAccessSupported,
 } from '@/lib/fileStorage'
 import { useFileStatus } from '@/hooks/useFileStatus'
@@ -271,7 +271,7 @@ function CategoryManager() {
 function LocalFileManager() {
   const { store, importData: ctxImport } = useFinance()
   const { success, error } = useToast()
-  const { connected, name: fileName } = useFileStatus()
+  const { connected, name: fileName, needsPermission, pendingName } = useFileStatus()
   const [mounted, setMounted] = useState(false)
   const [busy, setBusy] = useState(false)
   const supported = mounted && isFileSystemAccessSupported()
@@ -279,6 +279,25 @@ function LocalFileManager() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleReconnect = async () => {
+    setBusy(true)
+    try {
+      const ok = await reconnectActiveFile()
+      if (ok) success(`Kembali tersambung ke ${pendingName}`)
+      else error('Gagal menyambungkan kembali. Klik tombol ini sekali lagi untuk izin akses.')
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return
+      error(e instanceof Error ? e.message : 'Gagal menyambungkan kembali')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleIgnore = async () => {
+    await ignorePendingFile()
+    success('Koneksi file diabaikan')
+  }
 
   const handleSave = async () => {
     if (!store) return
@@ -339,6 +358,32 @@ function LocalFileManager() {
               >
                 <Unlink size={12} /> Putuskan
               </button>
+            </div>
+          )}
+          {needsPermission && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 mb-3 space-y-2">
+              <div className="flex items-center gap-2 text-xs text-amber-400 min-w-0">
+                <HardDrive size={14} className="shrink-0" />
+                <span className="truncate">
+                  Koneksi ke <strong>{pendingName ?? 'file'}</strong> butuh izin ulang setelah reload tab.
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleReconnect}
+                  disabled={busy}
+                  className="btn-primary text-xs px-3 py-1.5"
+                >
+                  <Save size={12} /> Sambungkan kembali
+                </button>
+                <button
+                  onClick={handleIgnore}
+                  disabled={busy}
+                  className="btn-ghost text-xs px-3 py-1.5"
+                >
+                  Abaikan
+                </button>
+              </div>
             </div>
           )}
           <div className="flex flex-col sm:flex-row gap-3">

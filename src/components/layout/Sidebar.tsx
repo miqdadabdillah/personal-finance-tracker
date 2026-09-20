@@ -28,7 +28,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const { connected, name } = useFileStatus()
+  const { connected, name, needsPermission, pendingName } = useFileStatus()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -89,6 +89,15 @@ export default function Sidebar() {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <HardDrive size={12} className="shrink-0" />
             <span className="truncate max-w-[8rem]">{name}</span>
+          </div>
+        ) : mounted && needsPermission ? (
+          <div
+            className="flex items-center gap-1.5 justify-center text-xs text-amber-400"
+            title="Klik Pengaturan untuk menyambungkan kembali ke file"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <HardDrive size={12} className="shrink-0" />
+            <span className="truncate max-w-[8rem]">{pendingName ?? 'File butuh izin'}</span>
           </div>
         ) : (
           <p className="text-xs text-[var(--text-muted)] text-center">Data tersimpan secara lokal</p>
