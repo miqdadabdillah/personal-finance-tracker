@@ -61,7 +61,7 @@ export default function MobileNav() {
 
         <div className="relative">
           {open && (
-            <div className="absolute bottom-full right-0 mb-2 w-44 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden animate-fade-in">
+            <div className="absolute bottom-full right-0 mb-24 w-44 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden animate-fade-in z-50">
               {moreItems.map(({ href, label, icon: Icon }) => {
                 const active = pathname === href
                 return (
