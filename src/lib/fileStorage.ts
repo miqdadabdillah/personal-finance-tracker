@@ -156,13 +156,22 @@ export async function initActiveFile(): Promise<void> {
   if (!isFileSystemAccessSupported()) return
   const handle = await getStoredHandle()
   if (!handle) return
-  if ((await handle.queryPermission({ mode: 'readwrite' })) !== 'granted') {
-    await clearStoredHandle()
+  let granted = false
+  try {
+    granted = await ensurePermission(handle)
+  } catch {
+    granted = false
+  }
+  if (granted) {
+    activeHandle = handle
+    activeFileName = handle.name
+    emitStatus()
     return
   }
-  activeHandle = handle
-  activeFileName = handle.name
+  activeHandle = null
+  activeFileName = null
   emitStatus()
+  onPersistError?.('Koneksi ke file lokal terputus. Sambungkan ulang di Pengaturan.')
 }
 
 export async function saveToLocalFile(data: FinanceStore): Promise<string> {
