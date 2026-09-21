@@ -41,6 +41,11 @@ export function getNetCashFlow(transactions: Transaction[], dateRange?: DateRang
   return getTotalIncome(transactions, dateRange) - getTotalExpense(transactions, dateRange)
 }
 
+export function getPercentChange(current: number, previous: number): number | null {
+  if (previous === 0) return current === 0 ? 0 : null
+  return ((current - previous) / Math.abs(previous)) * 100
+}
+
 export function getBudgetUsed(budget: Budget, transactions: Transaction[]): number {
   const start = new Date(budget.startDate)
   const end = new Date(budget.endDate)
