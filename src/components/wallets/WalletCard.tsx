@@ -46,7 +46,7 @@ export default function WalletCard({ wallet, transactions, index, count }: Walle
           >
             {wallet.icon ?? '💳'}
           </div>
-          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => setTransferOpen(true)}
               className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-500/20 text-[var(--text-muted)] hover:text-blue-400 transition-colors"

@@ -227,7 +227,7 @@ function CategoryManager() {
             </span>
             <button
               onClick={() => handleDelete(cat.id, cat.name)}
-              className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-400 transition-all"
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-400 transition-all"
             >
               <Trash size={11} />
             </button>

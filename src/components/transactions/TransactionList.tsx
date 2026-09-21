@@ -144,7 +144,7 @@ export default function TransactionList({ transactions: externalTxns, showFilter
                         {isIncome ? '+' : isTransfer ? '' : '-'}{formatCurrency(t.amount)}
                       </p>
                       {t.type !== 'transfer' && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setEditTxn(t)}
                             className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"

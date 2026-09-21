@@ -55,7 +55,7 @@ export default function BudgetCard({ budget }: BudgetCardProps) {
               <p className="text-xs text-[var(--text-muted)]">{periodLabel[budget.period]}</p>
             </div>
           </div>
-          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <button onClick={() => setEditOpen(true)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
               <Pencil size={13} />
             </button>
