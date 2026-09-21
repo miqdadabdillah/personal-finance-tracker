@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useFinance } from '@/context/FinanceContext'
 import { useToast } from '@/context/ToastContext'
 import { validateAmount } from '@/lib/validators'
-import { formatNumberInput, parseNumberInput } from '@/lib/formatters'
+import { formatNumberInput, parseNumberInput, toLocalDateString } from '@/lib/formatters'
 import { ArrowDown } from 'lucide-react'
 
 interface TransferFormProps {
@@ -20,7 +20,7 @@ export default function TransferForm({ onSuccess, onCancel }: TransferFormProps)
   const [fromWalletId, setFromWalletId] = useState('')
   const [toWalletId, setToWalletId] = useState('')
   const [note, setNote] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(toLocalDateString())
 
   const wallets = store?.wallets ?? []
 

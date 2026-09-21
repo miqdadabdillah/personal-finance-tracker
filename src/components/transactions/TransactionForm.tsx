@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useFinance } from '@/context/FinanceContext'
 import { useToast } from '@/context/ToastContext'
 import { validateAmount, validateWallet } from '@/lib/validators'
-import { todayISO } from '@/lib/formatters'
+import { toLocalDateString } from '@/lib/formatters'
 import { getAllocationAmount } from '@/lib/calculations'
 import { formatCurrency, formatNumberInput, parseNumberInput } from '@/lib/formatters'
 import { Transaction } from '@/types/finance'
@@ -22,7 +22,7 @@ export default function TransactionForm({ type, initial, onSuccess, onCancel }: 
 
   const [amount, setAmount] = useState(initial?.amount ? formatNumberInput(initial.amount) : '')
   const [date, setDate] = useState(
-    initial?.date ? initial.date.split('T')[0] : new Date().toISOString().split('T')[0]
+    initial?.date ? initial.date.split('T')[0] : toLocalDateString()
   )
   const [walletId, setWalletId] = useState(initial?.walletId ?? '')
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? '')

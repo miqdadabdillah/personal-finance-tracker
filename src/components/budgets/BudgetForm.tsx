@@ -5,7 +5,7 @@ import { useFinance } from '@/context/FinanceContext'
 import { useToast } from '@/context/ToastContext'
 import { Budget, BudgetPeriod } from '@/types/finance'
 import { getMonthRange } from '@/lib/calculations'
-import { formatNumberInput, parseNumberInput } from '@/lib/formatters'
+import { formatNumberInput, parseNumberInput, toLocalDateString } from '@/lib/formatters'
 
 interface BudgetFormProps {
   initial?: Partial<Budget>
@@ -23,10 +23,10 @@ export default function BudgetForm({ initial, onSuccess, onCancel }: BudgetFormP
   const [amount, setAmount] = useState(initial?.amount ? formatNumberInput(initial.amount) : '')
   const [period, setPeriod] = useState<BudgetPeriod>(initial?.period ?? 'monthly')
   const [startDate, setStartDate] = useState(
-    initial?.startDate?.split('T')[0] ?? monthRange.from.split('T')[0]
+    initial?.startDate?.split('T')[0] ?? toLocalDateString(new Date(monthRange.from))
   )
   const [endDate, setEndDate] = useState(
-    initial?.endDate?.split('T')[0] ?? monthRange.to.split('T')[0]
+    initial?.endDate?.split('T')[0] ?? toLocalDateString(new Date(monthRange.to))
   )
 
   const categories = (store?.categories ?? []).filter((c) => c.type === 'expense')
@@ -36,16 +36,16 @@ export default function BudgetForm({ initial, onSuccess, onCancel }: BudgetFormP
     const now = new Date()
     if (p === 'monthly') {
       const range = getMonthRange()
-      setStartDate(range.from.split('T')[0])
-      setEndDate(range.to.split('T')[0])
+      setStartDate(toLocalDateString(new Date(range.from)))
+      setEndDate(toLocalDateString(new Date(range.to)))
     } else if (p === 'weekly') {
       const day = now.getDay()
       const from = new Date(now)
       from.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
       const to = new Date(from)
       to.setDate(from.getDate() + 6)
-      setStartDate(from.toISOString().split('T')[0])
-      setEndDate(to.toISOString().split('T')[0])
+      setStartDate(toLocalDateString(from))
+      setEndDate(toLocalDateString(to))
     } else if (p === 'yearly') {
       setStartDate(`${now.getFullYear()}-01-01`)
       setEndDate(`${now.getFullYear()}-12-31`)

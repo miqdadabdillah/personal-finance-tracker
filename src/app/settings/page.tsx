@@ -7,6 +7,7 @@ import { exportData, importData } from '@/lib/storage'
 import { clearData } from '@/lib/storage'
 import { FinanceStore } from '@/types/finance'
 import { Download, Upload, Trash2, Shield, Database, Sun, Moon, Monitor, Plus, Pencil, Trash, Save, FolderOpen, HardDrive, Unlink } from 'lucide-react'
+import { toLocalDateString } from '@/lib/formatters'
 import {
   saveToLocalFile, openLocalFile, disconnectLocalFile, reconnectActiveFile, ignorePendingFile,
   isFileSystemAccessSupported,
@@ -29,7 +30,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `finance-backup-${new Date().toISOString().split('T')[0]}.json`
+    a.download = `finance-backup-${toLocalDateString()}.json`
     a.click()
     URL.revokeObjectURL(url)
     success('Data berhasil diekspor!')

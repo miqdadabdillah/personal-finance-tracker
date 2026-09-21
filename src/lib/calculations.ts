@@ -1,4 +1,5 @@
 import { Transaction, Wallet, Budget, BudgetStatus, DateRange } from '@/types/finance'
+import { toLocalDateString } from '@/lib/formatters'
 
 export function getWalletBalance(wallet: Wallet, transactions: Transaction[]): number {
   const walletTxns = transactions.filter(
@@ -116,7 +117,7 @@ export function getDailyData(transactions: Transaction[], dateRange: DateRange) 
   const to = new Date(dateRange.to)
   const current = new Date(from)
   while (current <= to) {
-    const dayStr = current.toISOString().split('T')[0]
+    const dayStr = toLocalDateString(current)
     const dayTxns = transactions.filter((t) => t.date.startsWith(dayStr))
     days.push({
       date: current.toISOString(),

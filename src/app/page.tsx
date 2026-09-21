@@ -54,8 +54,8 @@ export default function DashboardPage() {
     ? daily.map((d) => ({ label: getDayName(d.date), income: d.income, expense: d.expense }))
     : daily
         .filter((d) => d.income > 0 || d.expense > 0)
-        .map((d, i) => ({
-          label: period === 'month' ? `${i + 1}` : new Date(d.date).toLocaleString('id-ID', { month: 'short' }),
+        .map((d) => ({
+          label: period === 'month' ? String(new Date(d.date).getDate()) : new Date(d.date).toLocaleString('id-ID', { month: 'short' }),
           income: d.income,
           expense: d.expense,
         }))
