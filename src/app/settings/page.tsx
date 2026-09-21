@@ -334,7 +334,7 @@ function LocalFileManager() {
   }
 
   return (
-    <div className="card">
+    <div className="card hidden sm:block">
       <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Penyimpanan ke File Lokal</h2>
       <p className="text-xs text-[var(--text-muted)] mb-4">
         Simpan data langsung ke file di drive laptop/pc-mu, seperti aplikasi desktop.
