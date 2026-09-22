@@ -79,8 +79,8 @@ export default function RecentTransactions({
                       ? `${wallet?.name ?? '-'} → ${toWallet?.name ?? '-'}`
                       : t.source ?? cat?.name ?? 'Transaksi'}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">
-                    {formatShortDate(t.date)} · {wallet?.name}
+                  <p className="text-xs text-[var(--text-muted)] truncate">
+                    {formatShortDate(t.date)}{wallet?.name ? ` · ${wallet.name}` : ''}{t.note ? ` · ${t.note}` : ''}
                   </p>
                 </div>
                 <p
