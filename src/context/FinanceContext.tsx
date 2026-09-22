@@ -1,10 +1,10 @@
 'use client'
 
 import React, { createContext, useContext, ReactNode } from 'react'
-import { FinanceStore, Wallet, Transaction, Category, Budget, AllocationRule, Settings } from '@/types/finance'
+import { FinanceStore, Wallet, Transaction, Category, Budget, AllocationRule, Settings, DebtRecord, DebtPayment } from '@/types/finance'
 import { useFinanceStore } from '@/hooks/useFinanceStore'
 import { generateId, todayISO } from '@/lib/formatters'
-import { getWalletBalance, getAllocationAmount } from '@/lib/calculations'
+import { getWalletBalance, getAllocationAmount, getDebtPaid } from '@/lib/calculations'
 import { getData, clearData } from '@/lib/storage'
 
 interface FinanceContextType {
@@ -32,6 +32,12 @@ interface FinanceContextType {
   addAllocationRule: (rule: Omit<AllocationRule, 'id' | 'createdAt'>) => void
   updateAllocationRule: (id: string, rule: Partial<AllocationRule>) => void
   deleteAllocationRule: (id: string) => void
+  // Debts
+  addDebt: (debt: Omit<DebtRecord, 'id' | 'createdAt' | 'payments'>) => void
+  updateDebt: (id: string, debt: Partial<DebtRecord>) => void
+  deleteDebt: (id: string) => void
+  addDebtPayment: (debtId: string, payment: Omit<DebtPayment, 'id'>) => void
+  deleteDebtPayment: (debtId: string, paymentId: string) => void
   // Settings
   updateSettings: (settings: Partial<Settings>) => void
   // Data management
@@ -210,6 +216,78 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  const addDebt = (debt: Omit<DebtRecord, 'id' | 'createdAt' | 'payments'>) => {
+    updateStore((prev) => ({
+      ...prev,
+      debts: [
+        ...prev.debts,
+        { ...debt, id: generateId(), payments: [], createdAt: todayISO() },
+      ],
+    }))
+  }
+
+  const updateDebt = (id: string, debt: Partial<DebtRecord>) => {
+    updateStore((prev) => ({
+      ...prev,
+      debts: prev.debts.map((d) => (d.id === id ? { ...d, ...debt } : d)),
+    }))
+  }
+
+  const deleteDebt = (id: string) => {
+    updateStore((prev) => ({
+      ...prev,
+      debts: prev.debts.filter((d) => d.id !== id),
+    }))
+  }
+
+  const addDebtPayment = (debtId: string, payment: Omit<DebtPayment, 'id'>) => {
+    updateStore((prev) => {
+      const debt = prev.debts.find((d) => d.id === debtId)
+      if (!debt) return prev
+
+      const newPayment: DebtPayment = { ...payment, id: generateId() }
+      const paid = getDebtPaid(debt) + payment.amount
+      const settledAt = paid >= debt.amount ? todayISO() : undefined
+
+      const debts = prev.debts.map((d) =>
+        d.id === debtId
+          ? { ...d, payments: [...d.payments, newPayment], settledAt: settledAt ?? d.settledAt }
+          : d
+      )
+
+      let transactions = prev.transactions
+      if (payment.walletId && payment.amount > 0) {
+        const txn: Transaction = {
+          id: generateId(),
+          type: debt.type === 'lend' ? 'income' : 'expense',
+          amount: payment.amount,
+          walletId: payment.walletId,
+          date: payment.date,
+          source: debt.type === 'lend'
+            ? `Pembayaran piutang dari ${debt.name}`
+            : `Pembayaran hutang ke ${debt.name}`,
+          note: payment.note ?? '',
+          createdAt: todayISO(),
+        }
+        transactions = [...transactions, txn]
+      }
+
+      return { ...prev, debts, transactions }
+    })
+  }
+
+  const deleteDebtPayment = (debtId: string, paymentId: string) => {
+    updateStore((prev) => ({
+      ...prev,
+      debts: prev.debts.map((d) => {
+        if (d.id !== debtId) return d
+        const payments = d.payments.filter((p) => p.id !== paymentId)
+        const paid = payments.reduce((s, p) => s + p.amount, 0)
+        return { ...d, payments, settledAt: paid >= d.amount ? d.settledAt : undefined }
+      }),
+    }))
+  }
+
   const updateSettings = (settings: Partial<Settings>) => {
     updateStore((prev) => ({
       ...prev,
@@ -248,6 +326,11 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         addAllocationRule,
         updateAllocationRule,
         deleteAllocationRule,
+        addDebt,
+        updateDebt,
+        deleteDebt,
+        addDebtPayment,
+        deleteDebtPayment,
         updateSettings,
         resetData,
         importData,

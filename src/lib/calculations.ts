@@ -1,4 +1,4 @@
-import { Transaction, Wallet, Budget, BudgetStatus, DateRange } from '@/types/finance'
+import { Transaction, Wallet, Budget, BudgetStatus, DateRange, DebtRecord } from '@/types/finance'
 import { toLocalDateString } from '@/lib/formatters'
 
 export function getWalletBalance(wallet: Wallet, transactions: Transaction[]): number {
@@ -86,6 +86,37 @@ export function filterByDate(transactions: Transaction[], range: DateRange): Tra
     const d = new Date(t.date)
     return d >= from && d <= to
   })
+}
+
+export function getDebtPaid(debt: DebtRecord): number {
+  return debt.payments.reduce((sum, p) => sum + p.amount, 0)
+}
+
+export function getDebtRemaining(debt: DebtRecord): number {
+  return Math.max(debt.amount - getDebtPaid(debt), 0)
+}
+
+export function getDebtSummary(debts: DebtRecord[]) {
+  let totalLend = 0
+  let totalBorrow = 0
+  let settledLend = 0
+  let settledBorrow = 0
+  for (const d of debts) {
+    const remaining = getDebtRemaining(d)
+    if (remaining === 0) {
+      if (d.type === 'lend') settledLend += d.amount
+      else settledBorrow += d.amount
+      continue
+    }
+    if (d.type === 'lend') totalLend += remaining
+    else totalBorrow += remaining
+  }
+  return { totalLend, totalBorrow, net: totalLend - totalBorrow, settledLend, settledBorrow }
+}
+
+export function isDebtOverdue(debt: DebtRecord): boolean {
+  if (!debt.dueDate || getDebtRemaining(debt) <= 0) return false
+  return new Date(debt.dueDate).getTime() < new Date().getTime()
 }
 
 export function getWeekRange(): DateRange {

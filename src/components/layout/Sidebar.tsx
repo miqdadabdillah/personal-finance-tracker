@@ -13,6 +13,7 @@ import {
   Layers,
   TrendingUp,
   HardDrive,
+  HandCoins,
 } from 'lucide-react'
 import { useFileStatus } from '@/hooks/useFileStatus'
 
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/transactions', label: 'Transaksi', icon: ArrowLeftRight },
   { href: '/wallets', label: 'Dompet', icon: Wallet },
   { href: '/budgets', label: 'Budget', icon: PieChart },
+  { href: '/debts', label: 'Hutang Piutang', icon: HandCoins },
   { href: '/statistics', label: 'Statistik', icon: BarChart3 },
   { href: '/allocation', label: 'Alokasi', icon: Layers },
   { href: '/settings', label: 'Pengaturan', icon: Settings },

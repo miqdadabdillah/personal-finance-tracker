@@ -64,12 +64,35 @@ export type Settings = {
   theme: 'light' | 'dark' | 'system'
 }
 
+export type DebtType = 'lend' | 'borrow'
+
+export type DebtPayment = {
+  id: string
+  amount: number
+  date: string
+  walletId?: string
+  note?: string
+}
+
+export type DebtRecord = {
+  id: string
+  type: DebtType
+  name: string
+  amount: number
+  dueDate?: string
+  note?: string
+  payments: DebtPayment[]
+  createdAt: string
+  settledAt?: string
+}
+
 export type FinanceStore = {
   wallets: Wallet[]
   transactions: Transaction[]
   categories: Category[]
   budgets: Budget[]
   allocationRules: AllocationRule[]
+  debts: DebtRecord[]
   settings: Settings
 }
 

@@ -46,6 +46,7 @@ function getDefaultStore(): FinanceStore {
     categories: [...expenseCategories, ...incomeCategories],
     budgets: [],
     allocationRules,
+    debts: [],
     settings: DEFAULT_SETTINGS,
   }
 }
@@ -67,6 +68,7 @@ export function getData(): FinanceStore {
       categories: parsed.categories ?? getDefaultStore().categories,
       budgets: parsed.budgets ?? [],
       allocationRules: parsed.allocationRules ?? [],
+      debts: parsed.debts ?? [],
       settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) },
     }
   } catch {

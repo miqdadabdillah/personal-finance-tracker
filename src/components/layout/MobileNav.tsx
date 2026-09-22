@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ArrowLeftRight, Wallet, PieChart, BarChart3, MoreHorizontal, Layers, Settings, ChevronUp } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Wallet, PieChart, BarChart3, MoreHorizontal, Layers, Settings, ChevronUp, HandCoins } from 'lucide-react'
 
 const moreItems = [
+  { href: '/debts', label: 'Hutang Piutang', icon: HandCoins },
   { href: '/allocation', label: 'Alokasi', icon: Layers },
   { href: '/settings', label: 'Pengaturan', icon: Settings },
 ]
