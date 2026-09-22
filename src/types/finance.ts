@@ -42,6 +42,9 @@ export type Budget = {
   period: BudgetPeriod
   startDate: string
   endDate: string
+  // Jika false, sisa hemat TIDAK dibawa ke periode berikutnya (reset ke 0).
+  // Undefined = true (bawa sisa), agar budget lama tetap berperilaku sama.
+  carryOver?: boolean
 }
 
 export type AllocationTarget = {

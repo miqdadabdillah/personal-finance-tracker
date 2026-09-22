@@ -46,19 +46,6 @@ export function getPercentChange(current: number, previous: number): number | nu
   return ((current - previous) / Math.abs(previous)) * 100
 }
 
-export function getBudgetUsed(budget: Budget, transactions: Transaction[]): number {
-  const start = new Date(budget.startDate)
-  const end = new Date(budget.endDate)
-  return transactions
-    .filter((t) => {
-      if (t.type !== 'expense') return false
-      if (t.categoryId !== budget.categoryId) return false
-      const d = new Date(t.date)
-      return d >= start && d <= end
-    })
-    .reduce((sum, t) => sum + t.amount, 0)
-}
-
 export function getBudgetStatus(used: number, total: number): BudgetStatus {
   const pct = (used / total) * 100
   if (pct > 100) return 'exceeded'
@@ -67,10 +54,113 @@ export function getBudgetStatus(used: number, total: number): BudgetStatus {
   return 'safe'
 }
 
+// ─── Budget rolling periods ─────────────────────────
+const MS_PER_DAY = 86_400_000
+
+function startOfWeek(date: Date): Date {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const day = d.getDay()
+  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1))
+  return d
+}
+
+function weekRange(start: Date): DateRange {
+  const from = new Date(start)
+  from.setHours(0, 0, 0, 0)
+  const to = new Date(start)
+  to.setDate(to.getDate() + 6)
+  to.setHours(23, 59, 59, 999)
+  return { from: from.toISOString(), to: to.toISOString() }
+}
+
+// Periods (weekly/monthly/yearly) are anchored to the budget's start date and
+// always track the CURRENT running period. Custom stays fixed.
+export function getBudgetPeriodRanges(
+  budget: Budget,
+  now: Date = new Date()
+): { expired: DateRange[]; current: DateRange } {
+  if (budget.period === 'custom') {
+    return { expired: [], current: { from: budget.startDate, to: budget.endDate } }
+  }
+
+  const start = new Date(budget.startDate)
+  const expired: DateRange[] = []
+  let current: DateRange
+
+  if (budget.period === 'monthly') {
+    const elapsed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+    const count = Math.max(elapsed, 0)
+    for (let i = 0; i < count; i++) {
+      expired.push(getMonthRange(start.getFullYear(), start.getMonth() + i))
+    }
+    current = getMonthRange(start.getFullYear(), start.getMonth() + count)
+  } else if (budget.period === 'weekly') {
+    const anchor = startOfWeek(start)
+    const today = startOfWeek(now)
+    const count = Math.max(Math.floor((today.getTime() - anchor.getTime()) / MS_PER_DAY / 7), 0)
+    for (let i = 0; i < count; i++) {
+      expired.push(weekRange(new Date(anchor.getTime() + i * 7 * MS_PER_DAY)))
+    }
+    current = weekRange(new Date(anchor.getTime() + count * 7 * MS_PER_DAY))
+  } else {
+    const count = Math.max(now.getFullYear() - start.getFullYear(), 0)
+    for (let i = 0; i < count; i++) {
+      expired.push(getYearRange(start.getFullYear() + i))
+    }
+    current = getYearRange(start.getFullYear() + count)
+  }
+
+  return { expired, current }
+}
+
+export function getBudgetActiveRange(budget: Budget): DateRange {
+  return getBudgetPeriodRanges(budget).current
+}
+
+export function getBudgetUsed(budget: Budget, transactions: Transaction[]): number {
+  const range = getBudgetActiveRange(budget)
+  const from = new Date(range.from).getTime()
+  const to = new Date(range.to).getTime()
+  return transactions.reduce((sum, t) => {
+    if (t.type !== 'expense' || t.categoryId !== budget.categoryId) return sum
+    const time = new Date(t.date).getTime()
+    if (time < from || time > to) return sum
+    return sum + t.amount
+  }, 0)
+}
+
+// Surplus (positive) carried over from every expired period. Overspend is reset (never deducted).
+export function getBudgetCarryOver(budget: Budget, transactions: Transaction[]): number {
+  if (budget.carryOver === false) return 0
+  const ranges = getBudgetPeriodRanges(budget)
+  let carry = 0
+  for (const range of ranges.expired) {
+    const from = new Date(range.from).getTime()
+    const to = new Date(range.to).getTime()
+    let used = 0
+    for (const t of transactions) {
+      if (t.type !== 'expense' || t.categoryId !== budget.categoryId) continue
+      const time = new Date(t.date).getTime()
+      if (time >= from && time <= to) used += t.amount
+    }
+    carry += Math.max(budget.amount - used, 0)
+  }
+  return carry
+}
+
+// Total spending power this period: jatah asli + sisa positif terbawa.
+export function getBudgetAvailable(budget: Budget, transactions: Transaction[]): number {
+  return budget.amount + getBudgetCarryOver(budget, transactions)
+}
+
 export function getBudgetUsagePercent(budgets: Budget[], transactions: Transaction[]): number {
   if (budgets.length === 0) return 0
-  const totalBudget = budgets.reduce((s, b) => s + b.amount, 0)
-  const totalUsed = budgets.reduce((s, b) => s + getBudgetUsed(b, transactions), 0)
+  let totalBudget = 0
+  let totalUsed = 0
+  for (const b of budgets) {
+    totalBudget += getBudgetAvailable(b, transactions)
+    totalUsed += getBudgetUsed(b, transactions)
+  }
   if (totalBudget === 0) return 0
   return Math.min(Math.round((totalUsed / totalBudget) * 100), 100)
 }

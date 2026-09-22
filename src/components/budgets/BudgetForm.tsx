@@ -28,6 +28,7 @@ export default function BudgetForm({ initial, onSuccess, onCancel }: BudgetFormP
   const [endDate, setEndDate] = useState(
     initial?.endDate?.split('T')[0] ?? toLocalDateString(new Date(monthRange.to))
   )
+  const [carryOver, setCarryOver] = useState(initial?.carryOver ?? true)
 
   const categories = (store?.categories ?? []).filter((c) => c.type === 'expense')
 
@@ -64,6 +65,7 @@ export default function BudgetForm({ initial, onSuccess, onCancel }: BudgetFormP
       period,
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
+      carryOver: period !== 'custom' ? carryOver : true,
     }
 
     if (initial?.id) {
@@ -111,7 +113,33 @@ export default function BudgetForm({ initial, onSuccess, onCancel }: BudgetFormP
             </button>
           ))}
         </div>
+        {period !== 'custom' && (
+          <p className="text-[11px] text-[var(--text-muted)] mt-2">
+            Budget {period === 'weekly' ? 'mingguan' : period === 'monthly' ? 'bulanan' : 'tahunan'} otomatis mengikuti periode berjalan.
+          </p>
+        )}
       </div>
+
+      {period !== 'custom' && (
+        <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
+          carryOver ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-[var(--border)] bg-[var(--bg)]'
+        }`}>
+          <input
+            type="checkbox"
+            className="w-4 h-4 accent-emerald-500"
+            checked={carryOver}
+            onChange={(e) => setCarryOver(e.target.checked)}
+          />
+          <span className="flex-1 min-w-0">
+            <span className="block text-sm font-medium text-[var(--text-primary)]">Bawa sisa positif</span>
+            <span className="block text-[11px] text-[var(--text-muted)]">
+              {carryOver
+                ? 'Hemat bulan ini menambah jatah bulan depan. Overspend di-reset (tidak jadi hutang).'
+                : 'Sisa bulan ini hangus, tiap periode mulai dari nol.'}
+            </span>
+          </span>
+        </label>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
