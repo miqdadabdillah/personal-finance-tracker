@@ -68,7 +68,7 @@ export default function DashboardPage() {
   return (
     <div className="p-4 md:p-8 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">Pantau kondisi keuanganmu</p>

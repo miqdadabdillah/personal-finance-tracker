@@ -77,19 +77,19 @@ export default function BudgetCard({ budget }: BudgetCardProps) {
         </div>
 
         {budget.period !== 'custom' && (
-          <p className="flex items-center gap-1 text-[11px] text-violet-400/80 mb-2">
+          <p className="flex items-center gap-1 text-[11px] text-violet-400/80 mb-2 flex-wrap">
             <TrendingUp size={11} className="shrink-0" />
             Mengikuti periode berjalan{budget.carryOver === false ? ' · sisa di-reset' : ' · bawa sisa positif'}
           </p>
         )}
 
-        <div className="flex justify-between text-xs text-[var(--text-muted)] mb-2">
+        <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-xs text-[var(--text-muted)] mb-2">
           <span>{formatCurrency(used)} terpakai</span>
           <span>dari {formatCurrency(available)}</span>
         </div>
 
         {carry > 0 && (
-          <div className="flex items-center justify-end gap-1 text-[11px] text-emerald-400 mb-1.5">
+          <div className="flex items-center justify-end gap-1 text-[11px] text-emerald-400 mb-1.5 flex-wrap">
             <TrendingUp size={11} className="shrink-0" />
             Bawa dari periode sebelumnya: +{formatCurrency(carry)}
           </div>

@@ -74,12 +74,12 @@ export default function RecentTransactions({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                  <p className="text-sm font-medium text-[var(--text-primary)] break-words">
                     {isTransfer
                       ? `${wallet?.name ?? '-'} → ${toWallet?.name ?? '-'}`
                       : t.source ?? cat?.name ?? 'Transaksi'}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)] truncate">
+                  <p className="text-xs text-[var(--text-muted)] break-words">
                     {formatShortDate(t.date)}{wallet?.name ? ` · ${wallet.name}` : ''}{t.note ? ` · ${t.note}` : ''}
                   </p>
                 </div>

@@ -38,12 +38,12 @@ export default function DebtsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">Hutang & Piutang</h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">{debts.length} catatan tersimpan</p>
         </div>
-        <button onClick={() => setCreateOpen(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setCreateOpen(true)} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-auto">
           <Plus size={16} /> Catat Hutang/Piutang
         </button>
       </div>
