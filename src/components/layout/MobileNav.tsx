@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ArrowLeftRight, Wallet, PieChart, BarChart3, MoreHorizontal, Layers, Settings, ChevronUp, HandCoins } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Wallet, PieChart, BarChart3, MoreHorizontal, Layers, Settings, ChevronUp, HandCoins, Plus } from 'lucide-react'
 
 const moreItems = [
   { href: '/debts', label: 'Hutang Piutang', icon: HandCoins },
@@ -11,7 +11,7 @@ const moreItems = [
   { href: '/settings', label: 'Pengaturan', icon: Settings },
 ]
 
-export default function MobileNav() {
+export default function MobileNav({ onAdd }: { onAdd: () => void }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement>(null)
@@ -41,7 +41,34 @@ export default function MobileNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[var(--sidebar)]/95 backdrop-blur-xl border-t border-[var(--border)] safe-bottom">
       <div className="flex items-center justify-around px-1 py-2" ref={moreRef}>
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {navItems.slice(0, 3).map(({ href, label, icon: Icon }) => {
+          const active = pathname === href
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setOpen(false)}
+              className={`flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-xl transition-all duration-200 ${
+                active ? 'text-violet-400' : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all ${active ? 'bg-violet-500/20' : ''}`}>
+                <Icon size={20} />
+              </div>
+              <span className="text-[10px] font-medium leading-none">{label}</span>
+            </Link>
+          )
+        })}
+
+        <button
+          onClick={onAdd}
+          aria-label="Tambah transaksi"
+          className="-mt-9 w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 shadow-lg shadow-violet-500/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </button>
+
+        {navItems.slice(3).map(({ href, label, icon: Icon }) => {
           const active = pathname === href
           return (
             <Link
@@ -62,7 +89,7 @@ export default function MobileNav() {
 
         <div className="relative">
           {open && (
-            <div className="absolute bottom-full right-0 mb-24 w-44 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden animate-fade-in z-50">
+            <div className="absolute bottom-full right-0 mb-0 w-44 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-2xl overflow-hidden animate-fade-in z-50">
               {moreItems.map(({ href, label, icon: Icon }) => {
                 const active = pathname === href
                 return (

@@ -7,23 +7,26 @@ import TransferForm from '../transactions/TransferForm'
 import Modal from '../ui/Modal'
 
 type QuickAddType = 'income' | 'expense' | 'transfer' | null
+type QuickAddProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
 
-export default function QuickAdd() {
-  const [open, setOpen] = useState(false)
+export default function QuickAdd({ open, onOpenChange }: QuickAddProps) {
   const [mode, setMode] = useState<QuickAddType>(null)
 
   const handleClose = () => {
-    setOpen(false)
+    onOpenChange(false)
     setMode(null)
   }
 
   return (
     <>
-      {/* FAB */}
+      {/* FAB (desktop only, mobile "+" lives in MobileNav) */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => onOpenChange(true)}
         id="quick-add-btn"
-        className="fixed bottom-20 right-5 md:bottom-6 md:right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 shadow-2xl shadow-violet-500/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200"
+        className="hidden md:flex fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 shadow-2xl shadow-violet-500/40 items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200"
       >
         <Plus className="w-6 h-6 text-white" />
       </button>

@@ -6,7 +6,6 @@ import TransactionList from '@/components/transactions/TransactionList'
 import TransactionForm from '@/components/transactions/TransactionForm'
 import TransferForm from '@/components/transactions/TransferForm'
 import Modal from '@/components/ui/Modal'
-import QuickAdd from '@/components/dashboard/QuickAdd'
 import { Plus, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react'
 
 export default function TransactionsPage() {
@@ -46,8 +45,6 @@ export default function TransactionsPage() {
       <Modal isOpen={modal === 'transfer'} onClose={() => setModal(null)} title="Transfer">
         <TransferForm onSuccess={() => setModal(null)} onCancel={() => setModal(null)} />
       </Modal>
-
-      <QuickAdd />
     </div>
   )
 }

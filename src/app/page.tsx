@@ -19,7 +19,6 @@ import StatsCards from '@/components/dashboard/StatsCards'
 import CashFlowChart from '@/components/dashboard/CashFlowChart'
 import ExpenseByCategory from '@/components/dashboard/ExpenseByCategory'
 import RecentTransactions from '@/components/dashboard/RecentTransactions'
-import QuickAdd from '@/components/dashboard/QuickAdd'
 
 type Period = 'week' | 'month' | 'year'
 
@@ -121,8 +120,6 @@ export default function DashboardPage() {
           wallets={wallets}
         />
       </div>
-
-      <QuickAdd />
     </div>
   )
 }
