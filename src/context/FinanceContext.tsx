@@ -17,6 +17,7 @@ interface FinanceContextType {
   moveWallet: (id: string, direction: -1 | 1) => void
   // Transactions
   addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt'>) => void
+  addTransactions: (transactions: Array<Omit<Transaction, 'id' | 'createdAt'>>) => void
   addIncomeWithAllocation: (transaction: Omit<Transaction, 'id' | 'createdAt'>, ruleId: string) => void
   updateTransaction: (id: string, transaction: Partial<Transaction>) => void
   deleteTransaction: (id: string) => void
@@ -92,6 +93,16 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       transactions: [
         ...prev.transactions,
         { ...transaction, id: generateId(), createdAt: todayISO() },
+      ],
+    }))
+  }
+
+  const addTransactions = (newTransactions: Array<Omit<Transaction, 'id' | 'createdAt'>>) => {
+    updateStore((prev) => ({
+      ...prev,
+      transactions: [
+        ...prev.transactions,
+        ...newTransactions.map((t) => ({ ...t, id: generateId(), createdAt: todayISO() })),
       ],
     }))
   }
@@ -314,6 +325,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         deleteWallet,
         moveWallet,
         addTransaction,
+        addTransactions,
         addIncomeWithAllocation,
         updateTransaction,
         deleteTransaction,

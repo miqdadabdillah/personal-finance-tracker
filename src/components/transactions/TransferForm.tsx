@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import { useFinance } from '@/context/FinanceContext'
 import { useToast } from '@/context/ToastContext'
 import { validateAmount } from '@/lib/validators'
-import { formatNumberInput, parseNumberInput, toLocalDateString } from '@/lib/formatters'
+import { formatNumberInput, parseNumberInput, toLocalDateString, formatCurrency } from '@/lib/formatters'
+import { getWalletBalance } from '@/lib/calculations'
 import { ArrowDown } from 'lucide-react'
 
 interface TransferFormProps {
@@ -32,6 +33,15 @@ export default function TransferForm({ onSuccess, onCancel }: TransferFormProps)
     if (!fromWalletId) { error('Pilih dompet asal'); return }
     if (!toWalletId) { error('Pilih dompet tujuan'); return }
     if (fromWalletId === toWalletId) { error('Dompet asal dan tujuan harus berbeda'); return }
+
+    const fromWallet = wallets.find((w) => w.id === fromWalletId)
+    if (fromWallet) {
+      const fromBalance = getWalletBalance(fromWallet, store?.transactions ?? [])
+      if (amt > fromBalance) {
+        error(`Saldo dompet asal tidak mencukupi (Saldo: ${formatCurrency(fromBalance)})`)
+        return
+      }
+    }
 
     addTransaction({
       type: 'transfer',
@@ -64,9 +74,14 @@ export default function TransferForm({ onSuccess, onCancel }: TransferFormProps)
         <label className="form-label">Dari Dompet</label>
         <select className="form-input" value={fromWalletId} onChange={(e) => setFromWalletId(e.target.value)} required>
           <option value="">Pilih dompet asal</option>
-          {wallets.map((w) => (
-            <option key={w.id} value={w.id}>{w.icon} {w.name}</option>
-          ))}
+          {wallets.map((w) => {
+            const bal = getWalletBalance(w, store?.transactions ?? [])
+            return (
+              <option key={w.id} value={w.id}>
+                {w.icon} {w.name} ({formatCurrency(bal)})
+              </option>
+            )
+          })}
         </select>
       </div>
 
@@ -80,9 +95,14 @@ export default function TransferForm({ onSuccess, onCancel }: TransferFormProps)
         <label className="form-label">Ke Dompet</label>
         <select className="form-input" value={toWalletId} onChange={(e) => setToWalletId(e.target.value)} required>
           <option value="">Pilih dompet tujuan</option>
-          {wallets.filter((w) => w.id !== fromWalletId).map((w) => (
-            <option key={w.id} value={w.id}>{w.icon} {w.name}</option>
-          ))}
+          {wallets.filter((w) => w.id !== fromWalletId).map((w) => {
+            const bal = getWalletBalance(w, store?.transactions ?? [])
+            return (
+              <option key={w.id} value={w.id}>
+                {w.icon} {w.name} ({formatCurrency(bal)})
+              </option>
+            )
+          })}
         </select>
       </div>
 
